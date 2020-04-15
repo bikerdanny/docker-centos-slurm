@@ -1,0 +1,161 @@
+FROM centos:7
+
+########
+# base #
+########
+
+RUN yum install -y epel-release
+
+RUN yum install -y deltarpm
+
+# cgroup Task Affinity
+RUN yum install -y hwloc hwloc-devel
+
+# HDF5 Job Profiling
+RUN yum install -y hdf5 hdf5-devel
+
+# HTML Man Pages
+RUN yum install -y man2html-core
+
+# IPMI Energy Consumption
+RUN yum install -y freeipmi freeipmi-devel
+
+# Infiniband Accounting
+{% if base.infiniband == 'ofed' %}
+RUN yum install -y libibmad libibmad-devel libibumad libibumad-devel
+{% elif base.infiniband == 'mofed' %}
+RUN yum install -y gtk2 atk cairo gcc-gfortran tcsh lsof ethtool tcl tk
+COPY ./MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64.tgz /tmp/.
+RUN cd /tmp && \
+    tar xzf MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64.tgz && \
+    cd MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64 && \
+    ./mlnxofedinstall --force --without-fw-update --with-nvmf --user-space-only
+{% endif %}
+
+# Lua Support
+RUN yum install -y lua lua-devel
+
+# MySQL
+RUN yum install -y mariadb mariadb-devel
+
+# PAM Support
+RUN yum install -y pam pam-devel
+
+# NUMA Affinity
+RUN yum install -y numactl numactl-devel
+
+# Readline Support
+RUN yum install -y readline readline-devel
+
+# RRD External Sensor Data Collection
+RUN yum install -y rrdtool rrdtool-devel
+
+# smap
+RUN yum install -y ncurses ncurses-devel
+
+# sview
+RUN yum install -y gtk2 gtk2-devel
+
+#######
+# ucx #
+#######
+
+RUN yum install -y ucx ucx-devel
+
+############
+# libevent #
+############
+
+RUN yum install -y libevent libevent-devel
+
+########
+# pmix #
+########
+
+RUN yum install -y git
+
+RUN yum groupinstall -y "Development Tools"
+
+RUN mkdir /root/pmix
+
+RUN mkdir /opt/pmix
+
+# PMIx {{ pmix.v1 }}
+RUN git clone https://github.com/pmix/pmix.git /root/pmix/{{ pmix.v1 }} && \
+    cd /root/pmix/{{ pmix.v1 }} && \
+    git checkout {{ pmix.v1 }} && \
+    ./autogen.sh && \
+    ./configure --prefix=/opt/pmix/{{ pmix.v1 }} && \
+    make -j install
+
+# PMIx {{ pmix.v2 }}
+RUN git clone https://github.com/pmix/pmix.git /root/pmix/{{ pmix.v2 }} && \
+    cd /root/pmix/{{ pmix.v2 }} && \
+    git checkout {{ pmix.v2 }} && \
+    ./autogen.sh && \
+    ./configure --prefix=/opt/pmix/{{ pmix.v2 }} && \
+    make -j install
+
+# PMIx {{ pmix.v3 }}
+RUN git clone https://github.com/pmix/pmix.git /root/pmix/{{ pmix.v3 }} && \
+    cd /root/pmix/{{ pmix.v3 }} && \
+    git checkout {{ pmix.v3 }} && \
+    ./autogen.sh && \
+    ./configure --prefix=/opt/pmix/{{ pmix.v3 }} && \
+    make -j install
+
+# Only for Slurm rpmbuild
+RUN yum install -y pmix
+
+#########
+# munge #
+#########
+
+ENV MUNGE_UID_GID=351
+
+# Create group and user munge
+RUN groupadd -g ${MUNGE_UID_GID} munge
+RUN useradd -c "Runs Uid 'N' Gid Emporium" -d /var/run/munge -g munge -m -s /sbin/nologin -u ${MUNGE_UID_GID} munge
+
+# Install munge
+RUN yum install -y munge munge-devel munge-libs
+
+# mkdir -m 700 /etc/munge
+# mkdir -m 711 /var/lib/munge
+# mkdir -m 700 /var/log/munge
+# mkdir -m 755 /var/run/munge
+# dd if=/dev/urandom bs=1 count=1024 >/etc/munge/munge.key
+# sudo -u munge /usr/sbin/munged
+
+#########
+# slurm #
+#########
+
+ENV SLURM_VERSION={{ slurm.version }}
+
+RUN yum install -y wget
+
+RUN yum install -y openssl openssl-devel
+
+RUN yum install -y perl-ExtUtils-MakeMaker
+
+RUN yum install -y python3 python3-devel
+
+# Build Slurm rpms
+RUN cd /root && \
+    wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
+    tar xjf slurm-${SLURM_VERSION}.tar.bz2 && \
+    cd slurm-${SLURM_VERSION} && \
+    cd .. && \
+    tar cjf slurm-${SLURM_VERSION}.tar.bz2 slurm-${SLURM_VERSION} && \
+    rpmbuild --define '_with_pmix --with-pmix=/opt/pmix/{{ pmix.v1 }}:/opt/pmix/{{ pmix.v2 }}:/opt/pmix/{{ pmix.v3 }}' -ta slurm-${SLURM_VERSION}.tar.bz2
+
+# Install Slurm rpms
+RUN yum localinstall -y /root/rpmbuild/RPMS/$(uname -m)/slurm-*${SLURM_VERSION}*
+
+RUN yum install -y supervisor
+
+# Entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["supervisord", "-c", "/etc/supervisord.conf", "--nodaemon"]
