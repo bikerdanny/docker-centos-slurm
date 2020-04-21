@@ -163,7 +163,7 @@ Waittime=0
 SchedulerType=sched/backfill
 #SchedulerAuth=
 #SelectType=select/linear
-FastSchedule=1
+SlurmdParameters=config_overrides
 #PriorityType=priority/multifactor
 #PriorityDecayHalfLife=14-0
 #PriorityUsageResetPeriod=14-0
@@ -190,6 +190,9 @@ AccountingStorageType=accounting_storage/slurmdbd
 #AccountingStorageLoc=
 #AccountingStoragePass=
 #AccountingStorageUser=
+#
+# LICENSES
+Licenses=matlab:5
 #
 # COMPUTE NODES
 ${SLURM_NODES:-NodeName=linux[1-32] Procs=1 State=UNKNOWN}
