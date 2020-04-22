@@ -1,3 +1,7 @@
 Dockerfile
 docker-compose.yml
 *.tgz
+var_lib_mysql
+etc_munge
+etc_slurm
+shared
