@@ -4,9 +4,10 @@ FROM centos:7
 # base #
 ########
 
-RUN yum install -y epel-release
-
-RUN yum install -y deltarpm
+RUN yum install -y epel-release \
+                   deltarpm \
+                   which \
+                   vim
 
 # cgroup Task Affinity
 RUN yum install -y hwloc hwloc-devel
