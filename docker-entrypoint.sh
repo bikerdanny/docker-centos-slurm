@@ -194,9 +194,6 @@ AccountingStorageType=accounting_storage/slurmdbd
 # LICENSES
 Licenses=matlab:5
 #
-# TOPOLOGY
-TopologyPlugin=topology/tree
-#
 # COMPUTE NODES
 ${SLURM_NODES:-NodeName=linux[1-32] Procs=1 State=UNKNOWN}
 ${SLURM_PARTITION:-PartitionName=debug Nodes=ALL Default=YES MaxTime=INFINITE State=UP}
