@@ -162,7 +162,9 @@ Waittime=0
 # SCHEDULING
 SchedulerType=sched/backfill
 #SchedulerAuth=
-#SelectType=select/linear
+SelectType=select/cons_tres
+SelectTypeParameters=CR_Core_Memory,CR_CORE_DEFAULT_DIST_BLOCK,CR_ONE_TASK_PER_CORE,CR_ALLOCATE_FULL_SOCKET,CR_PACK_NODES
+GresTypes=gpu
 SlurmdParameters=config_overrides
 #PriorityType=priority/multifactor
 #PriorityDecayHalfLife=14-0
