@@ -9,7 +9,7 @@ git clone https://github.com/bikerdanny/docker-centos-slurm
 cd docker-centos-slurm
 pip3 install j2cli
 j2 Dockerfile.j2 config.ini > Dockerfile
-docker build -t bikerdanny/slurm:21.08.8-2 .
+docker build -t bikerdanny/slurm:22.05.3 .
 sed -i "s/controller1/c10/g" config.ini
 sed -i "s/compute1/c10/g" config.ini
 j2 aio.docker-compose.yml.j2 config.ini > docker-compose.yml
