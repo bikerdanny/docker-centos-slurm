@@ -88,6 +88,7 @@ StorageUser=${SLURMDBD_STORAGE_USER:-slurm}
 EOF
   fi
   chown ${SLURM_USER}:${SLURM_GROUP} /etc/slurm/slurmdbd.conf
+  chmod 600 /etc/slurm/slurmdbd.conf
   cat <<EOF | tee /etc/supervisord.d/slurmdbd.ini
 [program:slurmdbd]
 command=/usr/sbin/slurmdbd -D
