@@ -6,6 +6,7 @@ all: docker-compose.yml
 	docker-compose up -d
 
 clean:
+	docker-compose down --volumes
 	rm -f Dockerfile
 	rm -f docker-compose.yml
 	rm -rf var_lib_mysql
